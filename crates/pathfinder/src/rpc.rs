@@ -224,7 +224,7 @@ pub fn run_server(addr: SocketAddr, api: RpcApi) -> Result<(HttpServerHandle, So
     //     context.protocol_version().await
     // })?;
     module.register_async_method("starknet_syncing", |_, context| async move {
-        context.chain_id().await
+        context.syncing().await
     })?;
     let module = module.into_inner();
     server.start(module).map(|handle| (handle, local_addr))
