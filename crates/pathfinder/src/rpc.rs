@@ -114,14 +114,19 @@ Hint: If you are looking to run two instances of pathfinder, you must configure 
     module.register_async_method("starknet_getBlockByHash", |params, context| async move {
         #[derive(Debug, Deserialize)]
         pub struct NamedArgs {
-            pub block_hash: BlockId,
+            pub block_hash: BlockHashOrTag,
             #[serde(default)]
             pub requested_scope: Option<BlockResponseScope>,
         }
         let params = params.parse::<NamedArgs>()?;
+        let block_hash = match params.block_hash {
+            BlockHashOrTag::Hash(hash) => BlockId::Hash(hash),
+            BlockHashOrTag::Tag(Tag::Latest) =>  BlockId::Latest,
+            BlockHashOrTag::Tag(Tag::Pending) =>  BlockId::Pending,
+        };
         let requested_scope = params.requested_scope.unwrap_or(BlockResponseScope::TransactionHashes);
         context
-            .get_block(params.block_hash, requested_scope)
+            .get_block(block_hash, requested_scope)
             .await
     })?;
     module.register_async_method("starknet_getBlockByNumber", |params, context| async move {

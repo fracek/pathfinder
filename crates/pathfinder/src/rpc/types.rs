@@ -251,8 +251,12 @@ pub mod reply {
         pub parent_hash: StarknetBlockHash,
         pub block_number: Option<StarknetBlockNumber>,
         pub new_root: Option<GlobalRoot>,
+        pub old_root: GlobalRoot,
+        #[serde(rename = "accepted_time")]
         pub timestamp: StarknetBlockTimestamp,
+        #[serde(rename = "sequencer")]
         pub sequencer_address: SequencerAddress,
+        pub gas_price: String,
         pub transactions: Transactions,
     }
 
@@ -265,6 +269,8 @@ pub mod reply {
                 parent_hash: block.parent_hash,
                 block_number: Some(block.number),
                 new_root: Some(block.root),
+                old_root: Default::default(), 
+                gas_price: "0x0".to_string(),
                 timestamp: block.timestamp,
                 sequencer_address: block.sequencer,
                 transactions,
@@ -296,6 +302,8 @@ pub mod reply {
                     parent_hash: block.parent_block_hash,
                     block_number: Some(block.block_number),
                     new_root: Some(block.state_root),
+                    old_root: Default::default(),
+                    gas_price: "0x0".to_string(),
                     timestamp: block.timestamp,
                     sequencer_address: block
                         .sequencer_address
@@ -309,6 +317,8 @@ pub mod reply {
                     parent_hash: pending.parent_hash,
                     block_number: None,
                     new_root: None,
+                    old_root: Default::default(),
+                    gas_price: "0x0".to_string(),
                     timestamp: pending.timestamp,
                     sequencer_address: pending.sequencer_address,
                     transactions,
