@@ -17,7 +17,7 @@ use crate::{
         types::{
             request::OverflowingStorageAddress,
             request::{Call, ContractCall, EventFilter},
-            BlockHashOrTag,
+            BlockHashOrTag, BlockNumberOrTag, Tag,
         },
     },
     sequencer::request::add_transaction::ContractDefinition,
@@ -111,6 +111,37 @@ Hint: If you are looking to run two instances of pathfinder, you must configure 
                 .await
         },
     )?;
+    module.register_async_method("starknet_getBlockByHash", |params, context| async move {
+        #[derive(Debug, Deserialize)]
+        pub struct NamedArgs {
+            pub block_hash: BlockId,
+            #[serde(default)]
+            pub requested_scope: Option<BlockResponseScope>,
+        }
+        let params = params.parse::<NamedArgs>()?;
+        let requested_scope = params.requested_scope.unwrap_or(BlockResponseScope::TransactionHashes);
+        context
+            .get_block(params.block_hash, requested_scope)
+            .await
+    })?;
+    module.register_async_method("starknet_getBlockByNumber", |params, context| async move {
+        #[derive(Debug, Deserialize)]
+        pub struct NamedArgs {
+            pub block_number: BlockNumberOrTag,
+            #[serde(default)]
+            pub requested_scope: Option<BlockResponseScope>,
+        }
+        let params = params.parse::<NamedArgs>()?;
+        let requested_scope = params.requested_scope.unwrap_or(BlockResponseScope::TransactionHashes);
+        let block_number = match params.block_number {
+            BlockNumberOrTag::Number(n) => BlockId::Number(n),
+            BlockNumberOrTag::Tag(Tag::Latest) =>  BlockId::Latest,
+            BlockNumberOrTag::Tag(Tag::Pending) =>  BlockId::Pending,
+        };
+        context
+            .get_block(block_number, requested_scope)
+            .await
+    })?;
     module.register_async_method("starknet_getBlockWithTxs", |params, context| async move {
         #[derive(Debug, Deserialize)]
         pub struct NamedArgs {

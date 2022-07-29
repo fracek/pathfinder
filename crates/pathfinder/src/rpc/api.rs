@@ -24,6 +24,7 @@ use crate::{
     },
 };
 use anyhow::Context;
+use serde::Deserialize;
 use jsonrpsee::{
     core::{error::Error, RpcResult},
     types::{error::CallError, ErrorObject},
@@ -60,9 +61,11 @@ pub struct RawBlock {
 }
 
 /// Determines the type of response to block related queries.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Deserialize)]
 pub enum BlockResponseScope {
+    #[serde(rename = "TXN_HASH")]
     TransactionHashes,
+    #[serde(rename = "FULL_TXNS")]
     FullTransactions,
 }
 

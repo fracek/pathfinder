@@ -151,7 +151,7 @@ pub struct SequencerAddress(pub StarkHash);
 pub struct StarknetProtocolVersion(pub H256);
 
 /// StarkNet fee value.
-#[derive(Debug, Copy, Clone, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Deserialize, Serialize)]
 pub struct Fee(pub H128);
 
 /// StarkNet gas price.
