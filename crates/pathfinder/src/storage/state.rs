@@ -820,16 +820,23 @@ impl StarknetEventsTable {
         // HACK: make sure key_fts_expression lives long enough
         let key_fts_expression;
         if !filter.keys.is_empty() {
-            let base64_keys: Vec<String> = filter
-                .keys
-                .iter()
-                .map(|key| format!("\"{}\"", Self::event_key_to_base64_string(key)))
-                .collect();
-            key_fts_expression = base64_keys.join(" OR ");
+            if filter.keys.len() == 1 {
+                // If the filter only has one key, avoid the much slower FTS5 match.
+                key_fts_expression = Self::event_key_to_base64_string(&filter.keys[0]);
 
-            base_query.push_str("INNER JOIN starknet_events_keys ON starknet_events.rowid = starknet_events_keys.rowid");
-            where_statement_parts.push("starknet_events_keys.keys MATCH :events_match");
-            params.push((":events_match", &key_fts_expression));
+                where_statement_parts.push("starknet_events.keys = :events_match");
+                params.push((":events_match", &key_fts_expression));
+            } else {
+                let base64_keys: Vec<String> = filter
+                    .keys
+                    .iter()
+                    .map(|key| format!("\"{}\"", Self::event_key_to_base64_string(key)))
+                    .collect();
+                key_fts_expression = base64_keys.join(" OR ");
+                base_query.push_str("INNER JOIN starknet_events_keys ON starknet_events.rowid = starknet_events_keys.rowid");
+                where_statement_parts.push("starknet_events_keys.keys MATCH :events_match");
+                params.push((":events_match", &key_fts_expression));
+            }
         }
 
         // Paging
